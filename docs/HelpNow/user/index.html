@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en" class="helpnowplus">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7; IE=EDGE">
+	<meta name="viewport" content="width=device-width, initial-scale=1,  minimum-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+    <title>HelpNow+</title>
+	<meta name="description" content="">
+	<link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32" />
+	<link rel="stylesheet" type="text/css" href="../common/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="../common/css/font-awesome.min.css" />
+	<link rel="stylesheet" type="text/css" href="../common/css/ng-tags-input.min.css" />
+	<link rel="stylesheet" type="text/css" href="../common/css/jquery.mCustomScrollbar.min.css" />
+	<link rel="stylesheet" type="text/css" href="../common/css/bootstrap-tour-standalone.min.css" />
+	<link rel="stylesheet" type="text/css" href="../common/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" type="text/css" href="../common/css/bootstrap-datetimepicker.css" />
+    <link rel="stylesheet" type="text/css" href="../common/css/jquery-ui.min.1.10.4.css">
+	<link rel="stylesheet" type="text/css" href="../common/css/alpaca-min.css" />
+	<style>
+       .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+            /* add padding to account for vertical scrollbar */
+            padding-right: 20px;
+        } 
+</style>
+	<!-- this is a test checkout -->
+
+	<!-- Custom CSS -->
+	<script>
+		/* Change the cacheVersion everytime when there is any CSS or JS change to reset the cahe */
+		var timeStamp = Math.floor(Date.now() / 1000);
+		//var cacheVersion = timeStamp;
+		var cacheVersion = "241551.1";
+	</script>
+	
+	<link rel="stylesheet" href="css/hnplus-user.min.css">
+
+	
+	<script>
+		document.write('<link href="../common/css/common.css?v='+cacheVersion+'" rel="stylesheet">');
+	</script>
+	
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+	<script>
+	var ga_trackcode = "";
+	var gtag_trackcode = "";
+	var trackhost = (window.location.hostname).split('.')[0];
+
+	if(typeof trackhost !== "undefined" && trackhost == 'help') {
+		ga_trackcode = 'UA-47035117-18';
+		gtag_trackcode = 'gtag_UA_47035117_18';
+	}
+	else if(typeof trackhost !== "undefined" && trackhost == 'help-dev') {
+		ga_trackcode = 'UA-47035117-15';
+		gtag_trackcode = 'gtag_UA_47035117_15';
+	}
+	else if(typeof trackhost !== "undefined" && trackhost == 'help-lt') {
+		ga_trackcode = 'UA-47035117-10';
+		gtag_trackcode = 'gtag_UA_47035117_10';
+	}
+
+	if(ga_trackcode) {
+        document.write("<script async type='text/javascript' src='https://www.googletagmanager.com/gtag/js?id="+ga_trackcode+"'><\/script>");
+        
+		window.dataLayer = window.dataLayer || [];
+		function gtag()
+		{dataLayer.push(arguments)}
+		;
+		gtag('js', new Date());
+		gtag('config', ga_trackcode);
+	}
+    </script>
+
+</head>
+
+<body>
+	<div class="page">
+		<div class="floatmsg" ng-class="{'floatmsg-position': userDetails.Impersonating.UserName}">
+			<div class="alert alert-success float-message" ng-cloak id="success_message" style="display:none;" ng-show="successMessage">
+				<i class="fa fa-remove" ng-click="hideMesage('success_message')" ></i>
+				<div style="float:left" ng-bind-html="successMessage"></div>
+				<div style="clear:both"></div>
+			</div>
+			<div class="alert alert-danger float-message" ng-cloak id="error_message" style="display:none;" ng-show="errorMessage">
+				<i class="fa fa-remove" ng-click="hideMesage('error_message')"></i>
+				<div style="float:left" ng-bind-html="errorMessage"></div>
+				<div style="clear:both"></div>
+			</div>
+			
+			<div class="alert alert-danger float-message" role="alert" idle-countdown="countdown" ng-init="countdown=config.authentication.timeout" ng-show="isLoggedIn" id="logoutcountdown" style="display:none;">
+				Your session is about to expire in {{sessionExpireMessage(countdown)}}. <button ng-click = "resetIdle()" name="resetIdleTimeout" class="btn btn-default">Reset</button>
+			</div>
+		</div>
+		<div class="header-container">
+			<!-- Navigation -->
+			<div class="top-gradient-line"></div>
+			<!-- app notification message -->
+			<div ng-class="{'app-notification-wrap': appAnnouncement.hasAnnouncements}" ng-if="appAnnouncement.hasAnnouncements">
+				<div ng-class="{'app-announcement-msg': appAnnouncement.hasAnnouncements}" ng-bind-html="appAnnouncement.message"></div>
+					<span class="fa-stack fa-1x has-badge hn-plus-notifications">
+					<i class="fa fa-circle fa-stack-2x"></i>
+					<i class="fa fa-bullhorn fa-stack-1x fa-inverse"></i>
+					</span>
+			</div>
+			<!-- \app notification message -->
+			<!-- app read only mode message -->
+			<div ng-if="appRO.readonly" ng-class="{'app-read-only-msg': appRO.readonly}" ng-bind-html="appRO.message"></div>			
+			<!-- \app read only mode message -->
+			
+
+			<div ng-if="userDetails.Impersonating.UserName" class="account-switch-msg"> You’re temporarily logged in as <span ng-bind="userDetails.Impersonating.Name"></span>. When you’re done, <a href="javascript:void(0);" ng-click="switchBackUser(userDetails.Impersonating.UserName)"><u>switch back</u></a> to your account.</div>
+			
+			<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-class="{'diff-account': userDetails.Impersonating.UserName}">
+				<div class="container">
+					<!-- Brand and toggle get grouped for better mobile display -->
+					<div class="navbar-header">
+						
+						<button type="button" class="navbar-toggle load-font-AvenirNext" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1, #bs-example-navbar-collapse-0">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+						
+						<a class="navbar-brand" href="#/" ng-click="hideCreateTicket()">
+							<!--<div class="logo"><img src="images/logo.png"></div>-->
+							<div class="helpnowplus_logo">
+								<img src="https://help.vmware.com/user/images/helpnow_logo.png">
+								<!--<br/><span class="text">HelpNow<sup>+</sup></span>-->
+							</div>
+						</a>
+						
+
+						<div class="header-icons">
+							<a class="header-search-loader" href="javascript:void(0);"><img src="https://help.vmware.com/user/images/ajax-loader.gif" ng-show="toploader || toploaderData"></a>
+							
+							<span ng-if="currentpage" ng-show="!(toploader || toploaderData)" ng-cloak ng-click="showSearch()"> <i class="fa fa-search fa-lg" aria-hidden="true"></i> </span>
+							<a ng-show="!(toploader || toploaderData)" ng-cloak class="header-phone-icon" href="tel:1-888-869-2738"><i class="fa fa-phone" aria-hidden="true"></i></a>
+						</div>
+						<div class="search-close-wrap"  ng-class="{'show-field':showSearchflag}" ng-click="hideSearch()">
+							<i aria-hidden="true" class="fa fa-times fa-lg pull-right"></i>
+						</div>
+					</div>
+					<div class="dropdown collapse navbar-collapse catalogue" style="float: left;" ng-if="isLoggedIn" id="bs-example-navbar-collapse-0">
+						<ul class="nav navbar-nav catalogue-ul" ng-if="config.catalog.menu" ng-cloak>
+							<li class="dropdown">
+								<a href="javascript:void(0)" style="margin-top: -6px;" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Catalogs <span class="caret"></span></a>
+								
+								<ul class="dropdown-menu">
+									<li class="dropdown-submenu" ng-repeat="menu in config.catalog.menu" ng-click="closeCatalogDropdown()">
+										<a href="#/catalogs/{{menu}}" class="dropdown-toggle disabled" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+										{{menu}}
+										</a>
+											<ul class="dropdown-menu catalog-dropdown" ng-repeat="(k,c) in ::catalogMenu" ng-if="c.parent == menu">
+												<li class="dropdown-submenu" ng-repeat="cat in catalogMenu[k].catalogs">
+													<a ng-mouseenter="captureCoordinate($event)" ng-if="cat.catalog.length > 1 || (cat.catalog.length == 1 && cat.category.trim() != cat.catalog[0].catalog_item_name.trim())" href="#/catalogs/{{menu}}/?category={{ecodeUrl(cat.category)}}">
+														{{cat.category}}</a>
+														<ul class="dropdown-menu catalog-dropdown last-level-dropdown" ng-style="{'top':y}" ng-if="cat.catalog.length>1">
+															<li ng-repeat="item in cat.catalog">
+																<a href="#/catalog-form/{{item.category_id}}/{{item.catalog_item_id}}" ng-bind="item.catalog_item_name">
+																
+																</a>
+																<div ng-if="item.short_description && item.short_description !=item.catalog_item_name" class="tooltip-container" ng-style="{'z-index':99-$index}" ng-mouseenter="captureCoordinatePopup($event)">
+																	<img src="../common/images/info.png">
+																	<div class="helper-popover show-helper" ng-style="{'top':yPopup,'left':xPopup}" >
+																		<p ng-bind-html="item.short_description"></p>
+																	</div>
+																</div>
+															</li>
+														</ul>
+													
+
+													<a ng-if="cat.catalog.length == 1 && cat.category.trim() == cat.catalog[0].catalog_item_name.trim()" href="#/catalog-form/{{cat.catalog[0].category_id}}/{{cat.catalog[0].catalog_item_id}}" ng-bind="cat.category"></a>
+													<div ng-if="cat.catalog[0].short_description && cat.catalog[0].short_description !=cat.catalog[0].catalog_item_name && cat.catalog.length == 1" class="tooltip-container" ng-mouseenter="captureCoordinatePopup($event)">
+																	<img src="../common/images/info.png">
+																	<div class="helper-popover show-helper" ng-style="{'top':yPopup,'left':xPopup}">
+																		<p ng-bind-html="cat.catalog[0].short_description"></p>
+																	</div>
+																</div>
+												</li>
+											</ul>
+										</a>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+					<!-- Collect the nav links, forms, and other content for toggling -->
+				
+					<div class="global-search" id="global-search-form" ng-class="{'show-field':showSearchflag }" ng-if="currentpage" ng-cloak>
+						<form role="search" autocomplete="off" ng-cloak>
+						<button class="btn no-style" type="submit" ng-click="searchTicketsGlobalSearch()"><i class="fa fa-search fa-lg" id="search-ac-searchicon" style="cursor:pointer;" aria-hidden="true" ng-click="searchTicketsGlobalSearch()"></i></button>
+						<input type="text" id="header-search" class="global-search-text teset" ng-class="{'autocomplete-shown':(formData.search && showAutocomplete)}" ng-model="formData.search" ng-model-options="{ debounce: {'default': pause } }" ng-change="keyUpGlobalSearch()" autocomplete="off" placeholder="Search or create tickets" />
+							
+							<i id="search-ac-loader" class="fa fa-spinner fa-spin fa-2x"></i>
+							<span class="sr-only">Loading...</span>
+					</form>
+					</div>
+
+
+				<!-- global search autocomplete -->
+			 <div id="global-search-autocomplete" ng-if="currentpage" ng-cloak>
+				
+				<div class="help-ac-rel homepage"  ng-if="formData.search && showAutocomplete" ng-cloak>
+					<div class="panel panel-default help-ac-abs">
+						<div class="panel-body help-autocomplete">
+							<div class="autocomplete-header">
+									<div  class="header-tab">
+										<div ng-if="isShowForms" ng-cloak>
+											<a href="javascript:void(0);" ng-class="{'selected': isSelectedTab == 'request'}" id="request-tab" ng-click="tabClick('request','ticket','article')">
+												Create New
+											</a>
+										</div>
+										<div ng-if="!isShowForms" ng-cloak>
+											<a href="javascript:void(0);" ng-class="{'selected': isSelectedTab == 'request'}" id="request-tab" ng-click="tabClickGlobalSearch('request','ticket','article')" style="margin:0 3px;font-size:15px;">
+												<span class="desktop">Create New</span> <span class="mobile">Create</span>
+											</a>
+											<a href="javascript:void(0);" ng-class="{'selected': isSelectedTab == 'ticket'}" id="ticket-tab" ng-click="tabClickGlobalSearch('ticket','request','article')" style="margin:0 3px;font-size:15px;">
+												<span class="desktop">Existing Tickets</span> <span class="mobile">Existing</span>
+												<span ng-if="formData.search && searchresults['ticket'].total" ng-cloak>({{searchresults['ticket'].total}})</span>
+											</a>
+											<a href="javascript:void(0);" ng-class="{'selected': isSelectedTab == 'article'}" id="article-tab" ng-click="tabClickGlobalSearch('article','ticket','request')" style="margin:0 3px;font-size:15px;">
+												<span class="desktop">KB Articles</span> <span class="mobile">Articles</span>
+												<span ng-if="formData.search && searchresults['kb'].total" ng-cloak>({{searchresults['kb'].total}})</span></a>
+										</div>
+									</div>
+									
+										<div class="help-close"  style="top:3px;">
+											<a href="javascript:void(0)" ng-click="closeAutocompleteGlobalSearch()"><i class="fa fa-remove" style="font-size:20px;padding:7px;"></i></a>
+										</div>
+									
+									<div class="clearfix"></div>
+								</div>
+
+								<div class="clearfix"></div>
+								
+								<div class="autocomplete-results" ng-style="{ 'margin-top': isShowForms ? '0px' : '5px' }">
+									<div id="request-results" class="help-listing" ng-if="isSelectedTab == 'request'">
+										<div ng-if="!isShowForms" ng-cloak>
+										<div class="list" ng-repeat="catalog in searchresults['catalog']['results']" style="padding: 10px 0 8px 18px;">
+											
+											<a ng-href="#/catalog-form/{{catalog.source.category_id}}/{{catalog.selectdefault != false && catalog.source.catalog_item_id ? catalog.source.catalog_item_id : ''}}" ng-if="catalog.source.category_id" ng-click="closeAutocompleteGlobalSearch()" ng-cloak>
+												<span ng-if="catalog.source.category_name" ng-bind-html="highlightedCatalog(catalog,'category_name')"></span>
+												<span ng-if="!catalog.source.category_name" ng-bind-html="highlightedCatalog(catalog,'sc_catalog')"></span>
+											</a>
+											<span class="tower_type header pull-right">{{catalog.source.tower_type}}</span>
+											<button  type="button" ng-if="catalog.source.category_id==='42'"  class="btn btn-primary pull-right view-all-laptop-btn header" data-toggle="modal" data-target="#AllLaptopModal" ng-click="closeAutocompleteGlobalSearch()"> VIEW ALL LAPTOPS </button>
+											<button  type="button" ng-if="catalog.source.category_id==='40'"  class="btn btn-primary pull-right view-all-laptop-btn header" data-toggle="modal" data-target="#AllDesktopModal" ng-click="closeAutocompleteGlobalSearch()"> VIEW ALL DESKTOPS </button>
+											
+
+										</div>
+										</div>
+										<div class="list" ng-if="isShowForms" ng-cloak>
+											<a ng-href="#/catalog-form/25/125" class="static_catalog">
+												<span>General HR Information</span>
+											</a>
+										</div>
+										<div class="list" ng-if="isShowForms" ng-cloak>
+											<a ng-href="#/catalog-form/51/239" class="static_catalog">
+												<span>General Request Form</span>
+											</a>
+										</div>
+										<div ng-if="formData.search && !searchresults['catalog']['results'].length && !isShowForms" style="padding:10px 32px;"><em>empty results</em></div>
+										
+									</div>
+									
+									<div ng-if="!isShowForms" ng-cloak>
+									
+									<div id="ticket-results" class="help-listing" ng-if="isSelectedTab == 'ticket'">
+										<div class="list" ng-repeat="ticket in searchresults['ticket']['results']">
+											<a ng-href="{{'#/ticket/'+ticket.source.Id}}" ng-click="logCatagoryGlobalSearch()">
+												<span ng-bind-html="ticket.source.Id" class="number"></span>
+												<span ng-if="ticket.highlight.Description || ticket.highlight.Description" >-</span>
+												<span ng-if="ticket.highlight.Description" ng-bind-html="ticket.highlight.Description | shortLengthFilter:config.description_view_length"></span>
+												<span ng-if="!ticket.highlight.Description" ng-bind-html="ticket.source.Description | shortLengthFilter:config.description_view_length"></span>
+											</a>
+											<p style="margin:0;" ng-bind-html="showMatchingDataTicket(ticket,formData.search)"></p>
+										</div>
+										<div style="padding:10px 32px;" ng-if="formData.search && !searchresults['ticket']['results'].length"><em>empty results</em></div>
+									</div>
+
+									<div  id="article-results" class="help-listing" ng-if="isSelectedTab == 'article'">
+										<div class="list" ng-repeat="kb in searchresults['kb']['results']">
+											<a href="{{config.KBITem.saveKB}}{{kb.source.Id}}" target="_blank" ng-click="logCatagoryGlobalSearch()">
+												<!--<span ng-bind-html="kb.source.KBnumber" class="number"></span>:
+												<span ng-if="kb.highlight.Content" ng-bind-html="kb.highlight.Content"></span>
+												<span ng-if="!kb.highlight.Content" data-toggle="tooltip" title="{{kb.source.Content}}" ng-bind-html="kb.source.Content | shortLengthFilter:config.description_view_length"></span>
+												-->
+
+												<span ng-if="kb.source.Title.indexOf(kb.source.KBnumber) == -1" ng-bind-html="kb.source.KBnumber" class="number"></span>
+
+												<span ng-if="kb.highlight.Title" ng-bind-html="kb.highlight.Title | shortLengthFilter:config.description_view_length"></span>
+
+												<span ng-if="!kb.highlight.Title" ng-bind-html="kb.source.Title | shortLengthFilter:config.description_view_length"></span>
+											</a>
+											
+											<p class="info">by <span ng-bind="kb.source.UpdatedBy"></span>  •  Last modified <time title="{{(config.check_user_timezone_offset > 0 ? ( kb.source.UpdatedOn | amTimezone:userTimeZoneOffset) : (kb.source.UpdatedOn | amLocal)) | amDateFormat: config.dateformat}}" am-time-ago="(config.check_user_timezone_offset > 0 ? (kb.source.UpdatedOn | amTimezone:userTimeZoneOffset) : (kb.source.UpdatedOn | amLocal)) | amDateFormat: config.dateformat" ></time></p>
+											
+											<!-- <p ng-if="kb.highlight.text" ng-bind-html="kb.highlight.text"></p> -->
+										</div>
+										<div style="padding:10px 32px;" ng-if="formData.search && !searchresults['kb']['results'].length"><em>empty results</em></div>
+									</div>
+									</div>
+								</div>
+							</div>
+							<div class="autocomplete_sticky_footer">
+								<div class="footer-head">Quick link</div>
+								<div class="create-general-ticket-div">
+									<a href="#/catalog-form/25/125">
+										Create HR Ticket
+									</a>
+									<a href="#/catalog-form/51/239" class="create_ticket_link" ng-click="closeAutocompleteGlobalSearch()">
+										Create General Ticket
+									</a>
+								</div>	
+							</div>
+						</div>
+					</div>
+				</div> 
+					<!-- global search autocomplete ends -->
+					
+					<div class="collapse navbar-collapse top-left-menu" id="bs-example-navbar-collapse-1">
+					   <ul class="nav navbar-nav">
+							<li class="header-search-loader">
+								<a href="javascript:void(0)"><img src="https://help.vmware.com/user/images/ajax-loader.gif" ng-show="toploader || toploaderData || apiLoader" style="position:relative;top:-4px;"></a>
+							</li>
+							
+							<li class="dropdown" id="myTicketsTour">
+								<a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Tickets
+								  <span class="caret"></span>
+								  </a>
+								  <ul class="dropdown-menu" >
+									<li>
+										<a href="#/my-ticket/open" ><div style="float:left">Open</div> <div style="float:right"><span class="label label-as-badge label-primary sp-navbar-badge-count tcount" style="padding-top: 25%;" id="my-open-tickets">{{myTicketCounts.open}}</span></div></a>
+									</li>
+									<!-- <li role="separator" class="divider" style="margin:2px 0;"></li> -->
+									<li>
+										<a href="#/my-ticket/closed" ><div style="float:left">Closed</div><div style="float:right"><span class="label label-as-badge label-primary sp-navbar-badge-count tcount" style="padding-top: 25%;" id="my-closed-tickets">{{myTicketCounts.close}}</span></div></a>
+									</li>
+									<!-- <li role="separator" class="divider" style="margin:2px 0;"></li> -->
+									<li>
+										<a href="#/my-ticket/watched" ><div style="float:left">Watched</div><div style="float:right"><span class="label label-as-badge label-primary sp-navbar-badge-count tcount" style="padding-top: 25%;" id="my-watched-tickets">{{myTicketCounts.watch}}</span></div></a>
+									</li>
+								  </ul>
+							</li>
+							<li id="myApprovalsTour">
+								<!--<a href="{{config.snUrl+config.snLinks.myapprovals}}" >-->
+								<a href="#/my-approval" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1, #bs-example-navbar-collapse-0">
+								My Approvals 
+								<span class="label label-as-badge label-primary sp-navbar-badge-count tcount" ng-cloak ng-bind="myApprovalCount"></span>
+								</a>
+							</li>
+							
+							<li class="popover-wrap" ng-if="userDetails.RoleSet.length > 1">
+								<a href="javascript:void(0);" data-toggle="dropdown"><i class="fa fa-th fa-lg" aria-hidden="true"></i></a>
+								<ul class="dropdown-menu popover-dropdown">
+									<li>
+										<a href="/fulfiller" ng-click="trackSwitch('fulfiller_action')"> <span class="swith-view-cont">HELPNOW+</span><span class="fulfiller-txt">Fulfiller</span> </a>
+									</li>
+									<li ng-if="userDetails.RoleSet.indexOf(config.roles.oasis_admin) >= 0 || userDetails.RoleSet.indexOf(config.roles.oasis_fulfiller) >= 0">
+										<a href="/oasis" class="oasis-redirect"> <img src="https://help.vmware.com/user/images/oasis-logo.png" alt="OASIS" /> </a>
+									</li>
+								</ul>
+							</li>
+							
+							<li class="dropdown" ng-if="isLoggedIn" ng-cloak>
+								<a href="javascript:void(0);" class="dropdown-toggle round-link-tag" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+									<span class="header-round-link" ng-cloak ng-bind="userDetails.Initials"></span>
+									<!-- userDetails.name | limitTo:2 | uppercase -->
+									<!--span ng-bind="userDetails.name"></span--> <!--ng-bind="userDetails | username"-->
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right user-action-dropdown">
+
+									<!--li><a href="{{config.snUrl+config.snLinks.profile}}">Profile</a></li-->
+									<li>
+										<a ng-href="#/user-details">My Profile</a>
+									</li>
+									<li>
+										<a ng-href="#/my-assets">My Assets</a>
+									</li>
+									<li ng-if="userDetails.RoleSet.indexOf(config.roles.impersonator) >= 0 && config.show_impersonate"><a href="javascript:void(0)" ng-click="getRecentlyImpersonated()" >Impersonate</a></li>
+									
+									<!-- Preferences will remain commented for Phase1 release -->
+									<li><a href="#/preferences">Preferences</a></li>
+									
+									<li ng-if="userDetails.RoleSet.length > 1">
+										<a href="/fulfiller/admin/manage-group">Manage Groups</a>
+									</li>
+									
+									<li><a href="/logout">Logout</a></li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+					<!-- /.navbar-collapse -->
+				</div>
+				<!-- /.container -->
+			</nav>
+			<div class="clearfix" style="height:1px; margin-top: 44px" ng-if="appRO.readonly && !appAnnouncement.hasAnnouncements" ng-class="{'diff-account-clearfix-margin': userDetails.Impersonating.UserName}"></div>
+			<div class="clearfix" style="height:1px; margin-top: 82px" ng-if="appRO.readonly && appAnnouncement.hasAnnouncements" ng-class="{'diff-account-clearfix-margin': userDetails.Impersonating.UserName}"></div>
+			<div ng-if="!currentpage" class="advisories-header home-search-advisories-page" ng-style ="userDetails.Impersonating.UserName ? {'padding-top' : '110px'} : {'padding-top' : '66px'}">
+				<advisories-home-directive></advisories-home-directive>
+			</div>
+			
+			<div class="disclimer-banner" ng-show="!currentpage">
+				<p><strong>All Employees in the European Economic Area ("EEA"):</strong>  HelpNow+ should not be used to submit ‘sensitive’ personal information, such as health or medical information, you should send your query via email.  Please see the VMware Group Privacy Notice for Employees and Contingent Workers on VMware Source for additional information.</p>
+			</div>
+			<div class="impersonate-user-dropdown"  ng-style ="showImpersonateUser ? {'display' : 'block'} : {'display' : 'none'}">
+			
+					<div class="impersonate-popup-head">
+					<span class="pull-right"  ng-click="hideImpersonateLink();" >
+					<i class="fa fa-times" aria-hidden="true" ></i></span></div>
+				<div class="completer-holder"><input id="ImpersonateUser" class="completer-input"  placeholder="Search for user"></div>
+				<div class="impersonate-user-loader" style="position: absolute;right: 15px;top: 58px;"><img src="https://help.vmware.com/user/images/autocomplete-loader.gif" style="height:20px;width:20px;"></div>
+				
+				
+				<div id="recently_impersonate_loader" style="text-align:center;padding-top:20px;cursor:pointer;display:none;"><img src="https://help.vmware.com/user/images/autocomplete-loader.gif">
+				</div>
+				<div class="recent-impersonate-user">
+				<p class="text-lighter" ng-if="showImpersonateUserData" >Recently Impersonated</p>
+				<ul ng-if="showImpersonateUserData" class="impersonateList">
+					<li ng-repeat="users in recentlyImpersonated">
+						<a href="javascript:void(0)" g ng-bind="users.value" ng-click="getImpersonationUser(users.id);" style="text-decoration:none;color: #586376;line-height:17px;font-size:14px"></a>
+					</li>
+				</ul>
+				</div>
+				
+			</div>
+			<!--<div class="col-centered other_page_search" ng-if="currentpage">
+				<div class="col-xs-8 header-search">
+					<header-home-directive></header-home-directive>
+				</div>
+				<div class="col-xs-4 header-action" ng-if="currentpage != 'create-ticket'">
+					<div class="header-create-text">Still can't find what you are looking for?</div>
+
+					<a class="btn header-create-btn hr" type="button" ng-href="{{config.snUrl+config.snLinks.catalog}}{{config.general_catalogs[0].HR.sys_id}}">
+						Create HR Ticket
+					</a>
+
+					<a class="btn header-create-btn general" type="button" ng-href="#/create-ticket">
+						Create General Ticket
+					</a>
+				</div>
+				<div class="clearfix"></div>
+			</div>-->
+		</div>
+
+		<div class="main-container homepage-flex-box margin-top" ng-class="{'has-impersonate': !!userDetails.Impersonating.UserName}">
+			<div class="main-container margin-top otherpage-flex-box" style="position: absolute;left: 30px;top: 100px;"><img src="images/Picture1.png" style="height:200px;width:1300px;"></div>
+			
+		</div>
+		
+		<div class="modal-footer">
+		  <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+		  
+		</div>
+	  </div>
+	</div>
+  </div>
+
+
+
+
+  <!-- VIEW ALL DESKTOP MODAL -->
+<div class="modal fade all-modals" id="AllDesktopModal" tabindex="-1" role="dialog" aria-labelledby="viewDesktopLabel">
+        <div class="modal-dialog modal-lg model-fullfiler" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button>
+              <h4 class="modal-title" id="viewDesktopLabel">Desktops</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="block-contain-wrap">
+                        <h3 class="task-head-title">Dell Precision Tower 5820</h3>
+                      <div class="row block-contain">
+                        <div class="col-xs-12 col-md-4">
+                            <img src="../common/images/desktops/Dell_Precision_Tower_5820.png" class="img-responsive" style="max-width:80%"/>
+                        </div>
+                        <div class="col-xs-12 col-md-8 contain-discription">
+                            <strong>Configuration</strong>
+                            <ul>
+								<li>Intel Xeon W-2133 3.6GHz, 3.9GHz Turbo, 6C, 8.25M Cache, HT, (140W) DDR4- 2666</li>
+								<li>Boot drive or storage volume is greater than 2TB (select when 3TB/4TB HDD is ordered)</li>
+								<li>Intel Integrated controller (RST-e) with 1-2 front Flex Bay NVMe PCIe Drives</li>
+								<li>Precision 5820 Tower 950W Chassis</li>
+								<li>32GB (2x16GB) 2666MHz DDR4 RDIMM ECC</li>
+								<li>M.2 512GB PCIe Class 40 Solid State Drive</li>
+								<li>NVIDIA Quadro P600, 2GB, 4 mDP (5820T)</li>
+								<li>3-Year NBD Onsite Warranty</li>
+								<li>Desktop Cost – $1664*</li>
+                            </ul>
+                            <strong>Optional/Recommended Accessories</strong>
+                            <ul>
+                                <li>Dell Business Multimedia Keyboard- KB522</li>
+                                <li>Dell MS116 Wired Mouse, Black</li>
+                            </ul>
+                            <button data-dismiss="modal" ng-click="orderLaptops('40','381')" class="btn btn-primary order-btn"><i class="fa fa-play-circle" aria-hidden="true"></i> ORDER NOW</button>
+                        </div>
+                     </div>
+                     </div>
+                      
+                      
+                      <div class="block-contain-wrap">
+                        <h3 class="task-head-title">Dell PowerEdge T430</h3>
+                      <div class="row block-contain">
+                        <div class="col-xs-12 col-md-4" >
+                            <img src="../common/images/desktops/7bc487d537cc5a00d4cf6ec2b3990e44.png" class="img-responsive"/>
+                        </div>
+                        <div class="col-xs-12 col-md-8 contain-discription">
+                            <strong>Configuration</strong>
+                            <ul>
+                                <li>Intel Xeon E5-2620 v4 2.1GHz 20M Cache 8.0GT/s QPI Turbo HT 8C/16T (85W) Max Mem 2133MHz</li>
+                                <li> 1TB 7.2K RPM SATA 6Gbps 3.5in Hot-plug Hard Drive</li>
+                                <li>32GB (1x32GB only option) RDIMM, 2133MT/s, Dual Rank, x8 Data Width</li>
+                                <li>PERC H330 RAID Controller, No RAID for H330</li>
+                                <li>Internal Dual SD Module with 2x 16GB SD Cards</li>
+                                <li>Trusted Platform Module 2.0 FIPS</li>
+                                <li>Dual, Hot-plug, Redundant Power Supply (1+1) 750W (Changed from 550W)</li>
+                                <li>2x AMP, 10 Feet (3m), Power Cord, EU</li>
+                                <li>iDRAC8, Express with Dedicated NIC</li>
+                                <li>Chassis with up to 8, 3.5" Hot Plug Hard Drives, Tower Configuration</li>
+                                <li>Desktop Cost- $2792.97</li>
+                            </ul>
+                            
+                            <strong>Includes</strong>
+                            <ul>
+                                <li>3-Year NBD Onsite Warranty</li>
+                                <li>Dell Multimedia Keyboard KB216</li>
+                                <li>Dell Optical Mouse - MS116 (Black)</li>
+                            </ul>
+                            <button data-dismiss="modal" ng-click="orderLaptops('40','205')" class="btn btn-primary order-btn"><i class="fa fa-play-circle" aria-hidden="true"></i> ORDER NOW</button>
+                        </div>
+                     </div> 
+                      </div>
+                      
+                      <div class="block-contain-wrap">
+                        <h3 class="task-head-title">Thin Client - Dell Wyse 5060</h3>
+                      <div class="row block-contain">
+                        <div class="col-xs-12 col-md-4" >
+                            <img src="../common/images/desktops/Dell_Wyse_5060.png" class="img-responsive"/>
+                        </div>
+                        <div class="col-xs-12 col-md-8 contain-discription">
+                            <strong>Configuration</strong>
+                            <ul>
+                               <li>Intel Dual Band Wireless-AC 7265 2x2 + Bluetooth 4.0</li>
+								<li>8GB (1X8GB) 1600MHz DDR3L Memory</li>
+								<li>64GB SATA FLASH</li>
+								<li>Windows Embedded Standard 7P, English 64-bit (with WIE10 License)</li>
+								<li>USB 2.0 – 2 Ports</li>
+								<li>Universal Headset Jack</li>
+								<li>Kensington lock slot</li>
+								<li>RJ45 Port</li>
+								<li>USB 3.0 – 2 Ports </li>
+								<li>USB 2.0 – 2 Ports </li>
+								<li>Display Port – 2 Ports</li>
+								<li>Dell WYSE 5060 Thin Client Cost - $645</li>
+                            </ul>
+                            
+                            <strong>Standard View Virtual Machine (VM)</strong>
+                            <ul>
+                               <li>Windows 10</li>
+								<li>2 vCPU</li>
+								<li>8GB RAM</li>
+								<li>50GB Disk drive</li>
+								<li>Standard VMware Applications</li>                                
+                            </ul>
+                            
+                            <strong>Includes</strong>
+                            <ul>
+                               <li>Dell KB216 Wired Multi-Media Keyboard English Black</li>
+								<li>Dell MS116 Wired Mouse, Black</li>
+								<li>65W AC Adapter</li>
+                            </ul>
+                            
+                            <button data-dismiss="modal" ng-click="orderLaptops('40','374')" class="btn btn-primary order-btn"><i class="fa fa-play-circle" aria-hidden="true"></i> ORDER NOW</button>
+                      </div>
+                      </div>
+					  </div>
+					  
+					  <div class="block-contain-wrap">
+						<h3 class="task-head-title">Dell 24” Monitor for Video Conferencing: P2418HZ</h3>
+					  <div class="row block-contain">
+						<div class="col-xs-12 col-md-4">
+							<img src="../common/images/desktops/Dell_monitor_P2418HZ.png" class="img-responsive"  style="max-width:100%"/>
+						</div>
+						<div class="col-xs-12 col-md-8 contain-discription">
+							<strong>Configuration</strong>
+							<ul>
+								<li>23.8” LED-backlit LCD monitor / TFT active matrix </li>
+								<li>Full HD (1080p) 1920 x 1080 at 60 Hz</li>
+								<li>Aspect Ratio 16:9, In-Plane switching Technology</li>
+								<li>Contrast Ratio: 1000: 1 (typical) 8 Million: 1 (Dynamic)</li>
+								<li>2.1 Mega-pixel, Full HD image sensor and dual IR LEDs with VGA infrared camera</li>
+								<li>Dual digital microphone (Omni-directional)</li>
+								<li>Speakers (2 x 5.0W)</li>
+								<li>USB3.0 super-speed Hub (with 1 x USB upstream port, 2 x USB3.0 and 2 x USB 2.0 downstream ports, including 1x USB 3.0 BC1.2 charging port)</li>
+								<li>Connectivity: - 1 x DP (ver 1.2), 1 x HDMI (ver 1.4), 1 x VGA, 1 x USB 3.0 port – Upstream, 2 x USB 3.0 ports - Side (including 1 x USB3.0 BC1.2 charging port), 2 x USB 3.0 ports – Bottom, 1 x Headphone-out/ Microphone-in combo jack</li>
+								<li>7.93 lb</li>
+							</ul>
+							<strong>Includes</strong>
+							<ul>
+								<li>Monitor with stand, Power cable, 1 x DP Cable, 1 x VGA Cable, 1 x USB 3.0 upstream cable (enables the USB port on the monitor)</li>
+							</ul>
+							<button data-dismiss="modal" ng-click="orderLaptops('40','385')" class="btn btn-primary order-btn"><i class="fa fa-play-circle" aria-hidden="true"></i> ORDER NOW</button>
+						</div> <!--change the catalog id-->
+					 </div>
+					 </div>
+
+					 <div class="block-contain-wrap">
+						<h3 class="task-head-title">Monitor – Dell U2415 24”</h3>
+					  <div class="row block-contain">
+						<div class="col-xs-12 col-md-4">
+							<img src="../common/images/desktops/Dell_monitor_U2415.png" class="img-responsive"  style="max-width:100%"/>
+						</div>
+						<div class="col-xs-12 col-md-8 contain-discription">
+							<strong>Configuration</strong>
+							<ul>
+								<li>24” Widescreen (16:10) IPS Panel</li>
+								<li>1920 x 1200 @ 60Hz, 1000:1 Contrast Ratio 2 Million:1 (Max) (Dynamic Contrast Ratio)</li>
+								<li>2 HDMI(MHL) connector</li>
+								<li>1 Mini DisplayPort</li>
+								<li>1 DisplayPort (version 1.2)</li>
+								<li>1 DisplayPort out (MST)</li>
+								<li>1 Audio Line out (connect your speakers)</li>
+								<li>5 USB 3.0 ports - Downstream (5 at the back, 1 with battery charging)</li>
+								<li>1 USB 3.0 port - Upstream</li>
+								<li>6 USB 3.0 Ports, 5 Downstream 1 upstream</li>
+								<li>Height, Tilt, Swivel and Pivot adjustable</li>
+							</ul>
+							<strong>Includes</strong>
+							<ul>
+									<li>Dell UltraSharp U2415</li>
+									<li>3-Year Advanced Replacement Warranty</li>
+									<li>DP cable ( Mini-DP to DP)</li>
+									<li>USB 3.0 upstream cable (enables the USB ports on the monitor)</li>
+									<li>Monitor Cost - $256*</li>
+									<li>Prices do not include tax or shipping and may vary outside the US</li>
+
+							</ul>
+							<button data-dismiss="modal" ng-click="orderLaptops('40','207')" class="btn btn-primary order-btn"><i class="fa fa-play-circle" aria-hidden="true"></i> ORDER NOW</button>
+						</div> 
+					 </div>
+					 </div>
+                      
+                      
+                    </div> <!-- /.container-fluid -->
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    
+		<div class="footer-container">
+			<footer>
+				<div class="container box" style="width:100%;">
+					<div class="pull-left col-sm-7 desktop-view left-footer">
+						<div class="row footer-text" style="float: left;"> 
+							<a href="#/?tour=start" ng-click="startCoachMark();trackFooterGA('tour_action')">Guided tour of this portal</a>
+					
+					
+							<a target="_blank" href="https://vmware-com.socialcast.com/groups/94661-helpnow" ng-click="trackFooterGA('feedback_action')">Share Feedback</a>
+							
+							<a ng-cloak  href="im:<sip:oasisassist@vmware.com>" style="text-decoration:underline" ng-cloak>Chat with Oasis</a>
+
+							<a ng-cloak  href="#/catalog-form/110/391" style="text-decoration:underline" ng-cloak>Appointment with Oasis</a>
+							</div>
+							<div class="clearfix"></div>
+							<div class="row footer-text" style="float: left;">
+								<a target="_blank" href="{{config.escalation_procedure}}" class="escalation" ng-click="trackFooterGA('escalation_action')">Escalation Procedures</a>
+							</div>
+						<!--div class="row footer-text" style="float: left;padding-top:15px;">
+							<a href="{{config.snUrl}}"  ng-click="trackFooterGA('oldhelpnow_action')" style="font-style:italic">Switch to Classic View</a>
+						</div-->
+					</div>
+					
+					<div class="pull-right col-sm-5 desktop-view">
+						<div class="row footer-text">
+							<span class="desktop-view">
+								<img src="https://help.vmware.com/user/images/phone.png"></a> 1-888-VMWARE8 (1-888-869-2738), 7-HELP(74357)
+							</span>
+						</div>
+						<div class="clearfix"></div>
+						<div class="row footer-text">
+							<a href="mailto:help@vmware.com"><img src="https://help.vmware.com/user/images/mail.png"></a> <a href="mailto:help@vmware.com" style="text-decoration:underline">help@vmware.com</a>
+						</div>
+						
+					</div>
+					<div class="col-md-2 col-md-offset-5 mobile-view">
+						<div class="row footer-text" >Please contact Oasis Online Support by calling</div>
+						<div class="clearfix"></div>
+						<div class="row footer-text">
+							<a href="tel:1-888-869-2738" style="text-decoration:underline">+1-888-VMWARE8 (1-888-869-2738)</a>
+						</div>
+						<div class="row footer-text">
+							OR, +1-650-842-9200 (29200 or 74357)
+						</div>
+						<div class="clearfix"></div>
+						<div class="row footer-text" ><br/>or send an email to <a href="mailto:help@vmware.com" style="text-decoration:underline">help@vmware.com</a></div>
+						<div class="row footer-text" ng-cloak>
+							<a class="escalation" href="im:<sip:oasisassist@vmware.com>" ng-cloak style="text-decoration:underline">Chat with Oasis Online Team</a>
+						</div>
+						<div class="row footer-text" ng-cloak>
+							<a class="escalation" href="#/catalog-form/110/391" style="text-decoration:underline" ng-cloak>Appointment with Oasis</a>
+						</div>
+						<div class="clearfix"></div>
+					</div>
+				</div>
+			</footer>
+		</div>
+	</div>
+		
+	<script type="text/javascript" src="js/common-lib-js-1.js?v=234911" ></script>
+	<script type="text/javascript" src="js/common-lib-js-2.js?v=234911" ></script>
+	<script type="text/javascript" src="js/common-lib-angular.js?v=234911" ></script>
+	
+	<!--<script type="text/javascript" src="../common/js/jquery.min.1.11.2.js" ></script>
+	<script type="text/javascript" src="../common/js/jquery-ui.min.1.10.4.js"></script>
+	<script type="text/javascript" src="../common/js/jquery.mCustomScrollbar.min.js"></script>
+	
+	<script type="text/javascript" src="../common/js/handlebars.min.3.0.3.js"></script>
+	<script type="text/javascript" src="../common/js/alpaca.min.1.5.14.js"></script>
+
+	<script type="text/javascript" src="../common/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../common/js/bootstrap-tour-standalone.min.js"></script>
+	<script type="text/javascript" src="../common/js/bootstrap-datepicker.min.js"></script>
+
+	<script type="text/javascript" src="../common/js/moment-with-locales.min.js"></script>
+	<script type="text/javascript" src="../common/js/moment-timezone-with-data.min.js"></script>
+
+    <script type="text/javascript" src="../common/angular/angular.min.1.5.8.js"></script>
+    <script type="text/javascript" src="../common/angular/angular-sanitize.min.js"></script>
+    <script type="text/javascript" src="../common/angular/angular-route.min.js"></script>
+	<script type="text/javascript" src="../common/angular/angular-cookies.min.js"></script>
+	<script type="text/javascript" src="../common/angular/angular-idle.min.js"></script>
+	<script type="text/javascript" src="../common/angular/ng-tags-input.min.js"></script>
+	<script type="text/javascript" src="../common/angular/angular-file-upload.min.js"></script>
+	<script type="text/javascript" src="../common/angular/angular-moment.min.js"></script>
+	<script type="text/javascript" src="../common/angular/simple-autocomplete.js"></script>-->
+	
+	
+	<script src="app/hnplus-user.min.js?v=1542010865"></script>
+
+	
+</body>
+
+</html>
